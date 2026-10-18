@@ -1,0 +1,1538 @@
+{
+  "info": {
+    "_postman_id": "92d407b2-4038-43d7-a0f7-148fa5c85bde",
+    "name": "Restful-Booker API Testing",
+    "description": "Portfolio API testing untuk restful-booker.herokuapp.com. Lihat README.md untuk cara menjalankan (urutan request penting).",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "00 - Health Check",
+      "item": [
+        {
+          "name": "TC-01 [Positive] Health check - API aktif",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 201\", function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "pm.test(\"Response body is 'Created'\", function () {",
+                  "    pm.expect(pm.response.text()).to.eql(\"Created\");",
+                  "});",
+                  "pm.test(\"Response time < 3000 ms\", function () {",
+                  "    pm.expect(pm.response.responseTime).to.be.below(3000);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/ping",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "ping"
+              ]
+            },
+            "description": "**Tipe:** Positive | **Priority:** Medium\n\n**Expected:** 201, body \"Created\"",
+            "auth": {
+              "type": "noauth"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "01 - Authentication",
+      "item": [
+        {
+          "name": "TC-02 [Positive] Buat token - kredensial valid",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test(\"Response time < 3000 ms\", function () {",
+                  "    pm.expect(pm.response.responseTime).to.be.below(3000);",
+                  "});",
+                  "pm.test(\"Content-Type is JSON\", function () {",
+                  "    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");",
+                  "});",
+                  "const res = pm.response.json();",
+                  "pm.test(\"Token is a non-empty string\", function () {",
+                  "    pm.expect(res.token).to.be.a(\"string\").and.not.empty;",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/auth",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth"
+              ]
+            },
+            "description": "**Tipe:** Positive | **Priority:** High\n\n**Expected:** 200, field `token` bertipe string dan tidak kosong",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"username\": \"{{username}}\",\n    \"password\": \"{{password}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          }
+        },
+        {
+          "name": "TC-03 [Negative] Buat token - password salah",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "const res = pm.response.json();",
+                  "pm.test(\"No token returned\", function () {",
+                  "    pm.expect(res).to.not.have.property(\"token\");",
+                  "});",
+                  "pm.test(\"Reason is Bad credentials\", function () {",
+                  "    pm.expect(res.reason).to.eql(\"Bad credentials\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/auth",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth"
+              ]
+            },
+            "description": "**Tipe:** Negative | **Priority:** High\n\n**Expected:** 200 dengan reason \"Bad credentials\", tanpa token (perilaku API ini)",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"username\": \"{{username}}\",\n    \"password\": \"salah123\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          }
+        },
+        {
+          "name": "TC-04 [Negative] Buat token - body kosong",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const res = pm.response.json();",
+                  "pm.test(\"No token returned\", function () {",
+                  "    pm.expect(res).to.not.have.property(\"token\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/auth",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth"
+              ]
+            },
+            "description": "**Tipe:** Negative | **Priority:** Medium\n\n**Expected:** Tidak ada token yang dikembalikan",
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "02 - Create Booking (POST)",
+      "item": [
+        {
+          "name": "TC-05 [Positive] Buat booking - data valid",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test(\"Response time < 3000 ms\", function () {",
+                  "    pm.expect(pm.response.responseTime).to.be.below(3000);",
+                  "});",
+                  "pm.test(\"Content-Type is JSON\", function () {",
+                  "    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");",
+                  "});",
+                  "const res = pm.response.json();",
+                  "const b = res.booking || res;",
+                  "pm.test(\"Booking fields have correct data types\", function () {",
+                  "    pm.expect(b.firstname).to.be.a(\"string\");",
+                  "    pm.expect(b.lastname).to.be.a(\"string\");",
+                  "    pm.expect(b.totalprice).to.be.a(\"number\");",
+                  "    pm.expect(b.depositpaid).to.be.a(\"boolean\");",
+                  "    pm.expect(b.bookingdates.checkin).to.be.a(\"string\");",
+                  "    pm.expect(b.bookingdates.checkout).to.be.a(\"string\");",
+                  "});",
+                  "pm.test(\"bookingid is a number\", function () {",
+                  "    pm.expect(res.bookingid).to.be.a(\"number\");",
+                  "});",
+                  "pm.test(\"firstname matches request\", function () {",
+                  "    pm.expect(b.firstname).to.eql(pm.environment.get(\"firstname\"));",
+                  "});",
+                  "pm.test(\"totalprice matches request\", function () {",
+                  "    pm.expect(b.totalprice).to.eql(150);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/booking",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "booking"
+              ]
+            },
+            "description": "**Tipe:** Positive | **Priority:** High\n\n**Expected:** 200 (API ini tidak memakai 201), ada `bookingid` bertipe number, data sesuai input",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"firstname\": \"{{firstname}}\",\n    \"lastname\": \"{{lastname}}\",\n    \"totalprice\": 150,\n    \"depositpaid\": true,\n    \"bookingdates\": {\n        \"checkin\": \"2026-11-01\",\n        \"checkout\": \"2026-11-05\"\n    },\n    \"additionalneeds\": \"Breakfast\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          }
+        },
+        {
+          "name": "TC-06 [Negative] Buat booking - field firstname tidak dikirim",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is one of [400, 500]\", function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([400, 500]);",
+                  "});",
+                  "pm.test(\"Response does not contain 'bookingid'\", function () {",
+                  "    pm.expect(pm.response.text()).to.not.include(\"bookingid\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/booking",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "booking"
+              ]
+            },
+            "description": "**Tipe:** Negative | **Priority:** High\n\n**Expected:** Gagal (ideal 400; API ini cenderung 500), tidak ada bookingid",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"lastname\": \"{{lastname}}\",\n    \"totalprice\": 150,\n    \"depositpaid\": true,\n    \"bookingdates\": {\n        \"checkin\": \"2026-11-01\",\n        \"checkout\": \"2026-11-05\"\n    },\n    \"additionalneeds\": \"Breakfast\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          }
+        },
+        {
+          "name": "TC-07 [Negative] Buat booking - body kosong",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is one of [400, 500]\", function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([400, 500]);",
+                  "});",
+                  "pm.test(\"Response does not contain 'bookingid'\", function () {",
+                  "    pm.expect(pm.response.text()).to.not.include(\"bookingid\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/booking",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "booking"
+              ]
+            },
+            "description": "**Tipe:** Negative | **Priority:** Medium\n\n**Expected:** Gagal (400/500), tidak ada bookingid",
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          }
+        },
+        {
+          "name": "TC-08 [Boundary] Buat booking - totalprice = 0",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "const res = pm.response.json();",
+                  "const b = res.booking || res;",
+                  "pm.test(\"Booking fields have correct data types\", function () {",
+                  "    pm.expect(b.firstname).to.be.a(\"string\");",
+                  "    pm.expect(b.lastname).to.be.a(\"string\");",
+                  "    pm.expect(b.totalprice).to.be.a(\"number\");",
+                  "    pm.expect(b.depositpaid).to.be.a(\"boolean\");",
+                  "    pm.expect(b.bookingdates.checkin).to.be.a(\"string\");",
+                  "    pm.expect(b.bookingdates.checkout).to.be.a(\"string\");",
+                  "});",
+                  "pm.test(\"totalprice is 0\", function () {",
+                  "    pm.expect(b.totalprice).to.eql(0);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/booking",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "booking"
+              ]
+            },
+            "description": "**Tipe:** Boundary | **Priority:** Medium\n\n**Expected:** 200, totalprice pada response bernilai 0",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"firstname\": \"BoundaryTest\",\n    \"lastname\": \"{{lastname}}\",\n    \"totalprice\": 0,\n    \"depositpaid\": true,\n    \"bookingdates\": {\n        \"checkin\": \"2026-11-01\",\n        \"checkout\": \"2026-11-05\"\n    },\n    \"additionalneeds\": \"Breakfast\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "03 - Get Booking (GET)",
+      "item": [
+        {
+          "name": "TC-09 [Positive] Ambil semua booking id",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test(\"Response time < 3000 ms\", function () {",
+                  "    pm.expect(pm.response.responseTime).to.be.below(3000);",
+                  "});",
+                  "pm.test(\"Content-Type is JSON\", function () {",
+                  "    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");",
+                  "});",
+                  "const res = pm.response.json();",
+                  "pm.test(\"Response is a non-empty array\", function () {",
+                  "    pm.expect(res).to.be.an(\"array\").that.is.not.empty;",
+                  "});",
+                  "pm.test(\"Each item has numeric bookingid\", function () {",
+                  "    res.forEach(function (i) { pm.expect(i.bookingid).to.be.a(\"number\"); });",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/booking",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "booking"
+              ]
+            },
+            "description": "**Tipe:** Positive | **Priority:** High\n\n**Expected:** 200, array tidak kosong, setiap item punya `bookingid` bertipe number",
+            "auth": {
+              "type": "noauth"
+            }
+          }
+        },
+        {
+          "name": "TC-10 [Positive] Filter booking - firstname",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "const res = pm.response.json();",
+                  "pm.test(\"Result is a non-empty array\", function () {",
+                  "    pm.expect(res).to.be.an(\"array\").that.is.not.empty;",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/booking?firstname={{firstname}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "booking"
+              ],
+              "query": [
+                {
+                  "key": "firstname",
+                  "value": "{{firstname}}"
+                }
+              ]
+            },
+            "description": "**Tipe:** Positive | **Priority:** Medium\n\n**Expected:** 200, array tidak kosong",
+            "auth": {
+              "type": "noauth"
+            }
+          }
+        },
+        {
+          "name": "TC-11 [Positive] Filter booking - checkin & checkout",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test(\"Response is an array\", function () {",
+                  "    pm.expect(pm.response.json()).to.be.an(\"array\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/booking?checkin=2026-10-31&checkout=2026-11-06",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "booking"
+              ],
+              "query": [
+                {
+                  "key": "checkin",
+                  "value": "2026-10-31"
+                },
+                {
+                  "key": "checkout",
+                  "value": "2026-11-06"
+                }
+              ]
+            },
+            "description": "**Tipe:** Positive | **Priority:** Medium\n\n**Expected:** 200, response berupa array",
+            "auth": {
+              "type": "noauth"
+            }
+          }
+        },
+        {
+          "name": "TC-12 [Negative] Filter booking - tidak ada hasil",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test(\"Result is an empty array\", function () {",
+                  "    pm.expect(pm.response.json()).to.be.an(\"array\").that.is.empty;",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/booking?firstname=ZzzTidakAda",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "booking"
+              ],
+              "query": [
+                {
+                  "key": "firstname",
+                  "value": "ZzzTidakAda"
+                }
+              ]
+            },
+            "description": "**Tipe:** Negative | **Priority:** Medium\n\n**Expected:** 200, array kosong",
+            "auth": {
+              "type": "noauth"
+            }
+          }
+        },
+        {
+          "name": "TC-13 [Positive] Ambil booking by id - id valid",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test(\"Response time < 3000 ms\", function () {",
+                  "    pm.expect(pm.response.responseTime).to.be.below(3000);",
+                  "});",
+                  "pm.test(\"Content-Type is JSON\", function () {",
+                  "    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");",
+                  "});",
+                  "const res = pm.response.json();",
+                  "const b = res.booking || res;",
+                  "pm.test(\"Booking fields have correct data types\", function () {",
+                  "    pm.expect(b.firstname).to.be.a(\"string\");",
+                  "    pm.expect(b.lastname).to.be.a(\"string\");",
+                  "    pm.expect(b.totalprice).to.be.a(\"number\");",
+                  "    pm.expect(b.depositpaid).to.be.a(\"boolean\");",
+                  "    pm.expect(b.bookingdates.checkin).to.be.a(\"string\");",
+                  "    pm.expect(b.bookingdates.checkout).to.be.a(\"string\");",
+                  "});",
+                  "pm.test(\"firstname matches created data\", function () {",
+                  "    pm.expect(b.firstname).to.eql(pm.environment.get(\"firstname\"));",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/booking/:id",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "booking",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "{{booking_id}}"
+                }
+              ]
+            },
+            "description": "**Tipe:** Positive | **Priority:** High\n\n**Expected:** 200, semua field ada dengan tipe data benar, firstname sesuai data awal",
+            "auth": {
+              "type": "noauth"
+            }
+          }
+        },
+        {
+          "name": "TC-14 [Negative] Ambil booking by id - id tidak ada",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 404\", function () {",
+                  "    pm.response.to.have.status(404);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/booking/:id",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "booking",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "99999999"
+                }
+              ]
+            },
+            "description": "**Tipe:** Negative | **Priority:** High\n\n**Expected:** 404",
+            "auth": {
+              "type": "noauth"
+            }
+          }
+        },
+        {
+          "name": "TC-15 [Negative] Ambil booking by id - id bukan angka",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is one of [400, 404]\", function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([400, 404]);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/booking/:id",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "booking",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "abc"
+                }
+              ]
+            },
+            "description": "**Tipe:** Negative | **Priority:** Medium\n\n**Expected:** 400 atau 404",
+            "auth": {
+              "type": "noauth"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "04 - Update Booking (PUT)",
+      "item": [
+        {
+          "name": "TC-16 [Positive] Update booking (PUT) - token valid",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test(\"Response time < 3000 ms\", function () {",
+                  "    pm.expect(pm.response.responseTime).to.be.below(3000);",
+                  "});",
+                  "const res = pm.response.json();",
+                  "const b = res.booking || res;",
+                  "pm.test(\"Booking fields have correct data types\", function () {",
+                  "    pm.expect(b.firstname).to.be.a(\"string\");",
+                  "    pm.expect(b.lastname).to.be.a(\"string\");",
+                  "    pm.expect(b.totalprice).to.be.a(\"number\");",
+                  "    pm.expect(b.depositpaid).to.be.a(\"boolean\");",
+                  "    pm.expect(b.bookingdates.checkin).to.be.a(\"string\");",
+                  "    pm.expect(b.bookingdates.checkout).to.be.a(\"string\");",
+                  "});",
+                  "pm.test(\"firstname updated\", function () {",
+                  "    pm.expect(b.firstname).to.eql(\"BudiUpdated\");",
+                  "});",
+                  "pm.test(\"totalprice updated\", function () {",
+                  "    pm.expect(b.totalprice).to.eql(200);",
+                  "});",
+                  "pm.test(\"depositpaid updated\", function () {",
+                  "    pm.expect(b.depositpaid).to.eql(false);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Cookie",
+                "value": "token={{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/booking/:id",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "booking",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "{{booking_id}}"
+                }
+              ]
+            },
+            "description": "**Tipe:** Positive | **Priority:** High\n\n**Expected:** 200, data pada response sesuai body baru",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"firstname\": \"BudiUpdated\",\n    \"lastname\": \"{{lastname}}\",\n    \"totalprice\": 200,\n    \"depositpaid\": false,\n    \"bookingdates\": {\n        \"checkin\": \"2026-11-01\",\n        \"checkout\": \"2026-11-05\"\n    },\n    \"additionalneeds\": \"Dinner\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          }
+        },
+        {
+          "name": "TC-17 [Positive] Update booking (PUT) - Basic Auth",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "const res = pm.response.json();",
+                  "const b = res.booking || res;",
+                  "pm.test(\"Booking fields have correct data types\", function () {",
+                  "    pm.expect(b.firstname).to.be.a(\"string\");",
+                  "    pm.expect(b.lastname).to.be.a(\"string\");",
+                  "    pm.expect(b.totalprice).to.be.a(\"number\");",
+                  "    pm.expect(b.depositpaid).to.be.a(\"boolean\");",
+                  "    pm.expect(b.bookingdates.checkin).to.be.a(\"string\");",
+                  "    pm.expect(b.bookingdates.checkout).to.be.a(\"string\");",
+                  "});",
+                  "pm.test(\"firstname updated\", function () {",
+                  "    pm.expect(b.firstname).to.eql(\"BudiBasic\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/booking/:id",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "booking",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "{{booking_id}}"
+                }
+              ]
+            },
+            "description": "**Tipe:** Positive | **Priority:** Medium\n\n**Expected:** 200, firstname = BudiBasic",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"firstname\": \"BudiBasic\",\n    \"lastname\": \"{{lastname}}\",\n    \"totalprice\": 210,\n    \"depositpaid\": true,\n    \"bookingdates\": {\n        \"checkin\": \"2026-11-01\",\n        \"checkout\": \"2026-11-05\"\n    },\n    \"additionalneeds\": \"Breakfast\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "username",
+                  "value": "{{username}}",
+                  "type": "string"
+                },
+                {
+                  "key": "password",
+                  "value": "{{password}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "TC-18 [Negative] Update booking (PUT) - tanpa token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 403\", function () {",
+                  "    pm.response.to.have.status(403);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/booking/:id",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "booking",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "{{booking_id}}"
+                }
+              ]
+            },
+            "description": "**Tipe:** Negative | **Priority:** High\n\n**Expected:** 403 Forbidden",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"firstname\": \"Hacker\",\n    \"lastname\": \"{{lastname}}\",\n    \"totalprice\": 150,\n    \"depositpaid\": true,\n    \"bookingdates\": {\n        \"checkin\": \"2026-11-01\",\n        \"checkout\": \"2026-11-05\"\n    },\n    \"additionalneeds\": \"Breakfast\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          }
+        },
+        {
+          "name": "TC-19 [Negative] Update booking (PUT) - token tidak valid",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 403\", function () {",
+                  "    pm.response.to.have.status(403);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Cookie",
+                "value": "token=invalid123"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/booking/:id",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "booking",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "{{booking_id}}"
+                }
+              ]
+            },
+            "description": "**Tipe:** Negative | **Priority:** High\n\n**Expected:** 403 Forbidden",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"firstname\": \"Hacker\",\n    \"lastname\": \"{{lastname}}\",\n    \"totalprice\": 150,\n    \"depositpaid\": true,\n    \"bookingdates\": {\n        \"checkin\": \"2026-11-01\",\n        \"checkout\": \"2026-11-05\"\n    },\n    \"additionalneeds\": \"Breakfast\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          }
+        },
+        {
+          "name": "TC-20 [Negative] Update booking (PUT) - field tidak lengkap",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is one of [400, 500]\", function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([400, 500]);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Cookie",
+                "value": "token={{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/booking/:id",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "booking",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "{{booking_id}}"
+                }
+              ]
+            },
+            "description": "**Tipe:** Negative | **Priority:** Medium\n\n**Expected:** Gagal (ideal 400; API ini bisa 400/500)",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"firstname\": \"OnlyName\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "05 - Partial Update (PATCH)",
+      "item": [
+        {
+          "name": "TC-21 [Positive] Partial update (PATCH) - firstname & lastname",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test(\"Response time < 3000 ms\", function () {",
+                  "    pm.expect(pm.response.responseTime).to.be.below(3000);",
+                  "});",
+                  "const res = pm.response.json();",
+                  "const b = res.booking || res;",
+                  "pm.test(\"Booking fields have correct data types\", function () {",
+                  "    pm.expect(b.firstname).to.be.a(\"string\");",
+                  "    pm.expect(b.lastname).to.be.a(\"string\");",
+                  "    pm.expect(b.totalprice).to.be.a(\"number\");",
+                  "    pm.expect(b.depositpaid).to.be.a(\"boolean\");",
+                  "    pm.expect(b.bookingdates.checkin).to.be.a(\"string\");",
+                  "    pm.expect(b.bookingdates.checkout).to.be.a(\"string\");",
+                  "});",
+                  "pm.test(\"firstname patched\", function () {",
+                  "    pm.expect(b.firstname).to.eql(\"Siti\");",
+                  "});",
+                  "pm.test(\"lastname patched\", function () {",
+                  "    pm.expect(b.lastname).to.eql(\"Aminah\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Cookie",
+                "value": "token={{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/booking/:id",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "booking",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "{{booking_id}}"
+                }
+              ]
+            },
+            "description": "**Tipe:** Positive | **Priority:** High\n\n**Expected:** 200, 2 field berubah, field lain tetap ada",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"firstname\": \"Siti\",\n    \"lastname\": \"Aminah\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          }
+        },
+        {
+          "name": "TC-22 [Negative] Partial update (PATCH) - tanpa token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 403\", function () {",
+                  "    pm.response.to.have.status(403);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/booking/:id",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "booking",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "{{booking_id}}"
+                }
+              ]
+            },
+            "description": "**Tipe:** Negative | **Priority:** High\n\n**Expected:** 403 Forbidden",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"firstname\": \"Hacker\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "06 - Delete Booking (DELETE)",
+      "item": [
+        {
+          "name": "TC-23 [Negative] Hapus booking - tanpa token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 403\", function () {",
+                  "    pm.response.to.have.status(403);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/booking/:id",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "booking",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "{{booking_id}}"
+                }
+              ]
+            },
+            "description": "**Tipe:** Negative | **Priority:** High\n\n**Expected:** 403 Forbidden",
+            "auth": {
+              "type": "noauth"
+            }
+          }
+        },
+        {
+          "name": "TC-24 [Positive] Hapus booking - token valid",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 201\", function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "pm.test(\"Response body is 'Created'\", function () {",
+                  "    pm.expect(pm.response.text()).to.eql(\"Created\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Cookie",
+                "value": "token={{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/booking/:id",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "booking",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "{{booking_id}}"
+                }
+              ]
+            },
+            "description": "**Tipe:** Positive | **Priority:** High\n\n**Expected:** 201 Created (perilaku API ini), body \"Created\"",
+            "auth": {
+              "type": "noauth"
+            }
+          }
+        },
+        {
+          "name": "TC-25 [Negative] Verifikasi - ambil booking yang sudah dihapus",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 404\", function () {",
+                  "    pm.response.to.have.status(404);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/booking/:id",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "booking",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "{{booking_id}}"
+                }
+              ]
+            },
+            "description": "**Tipe:** Negative | **Priority:** High\n\n**Expected:** 404",
+            "auth": {
+              "type": "noauth"
+            }
+          }
+        },
+        {
+          "name": "TC-26 [Negative] Hapus booking - id sudah dihapus",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is one of [404, 405]\", function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([404, 405]);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Cookie",
+                "value": "token={{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/booking/:id",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "booking",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "{{booking_id}}"
+                }
+              ]
+            },
+            "description": "**Tipe:** Negative | **Priority:** Medium\n\n**Expected:** 404 atau 405 (API ini cenderung 405)",
+            "auth": {
+              "type": "noauth"
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
